@@ -15,8 +15,8 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	void OnAssetCreated(UFactory* Factory);
-	void OnAssetAdded(const FAssetData& AssetData);
+	//void OnAssetCreated(UFactory* Factory);
+	//void OnAssetAdded(const FAssetData& AssetData);
 	static void RenameAsset(const FAssetData& AssetData);
 	static FString GetAssetPrefix(const FTopLevelAssetPath ClassPath);
 	static bool DoesPrefixExistInName(const FAssetData& AssetData);

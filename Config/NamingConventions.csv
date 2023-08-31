@@ -1,0 +1,36 @@
+HDRI,HDR_
+Material,M_
+Material Instance,MI_
+Physics Asset,PHYS_
+Physics Material,PM_
+Post Process Material,PPM_
+Skeletal Mesh,SK_
+Static Mesh,SM_
+Texture,T_
+OCIO Profile,OCIO_
+Actor Component,AC_
+Animation Blueprint,ABP_
+Blueprint Interface,BI_
+Blueprint,BP_
+Curve Table,CT_
+Data Table,DT_
+Enum,E_
+Structure,F_
+Widget Blueprint,WBP_
+Particle System (Cascade),PS_
+Niagara Emitter,FXE_
+Niagara System,FXS_
+Niagara Function,FXF_
+Rig,Rig_
+Skeleton,SKEL_
+Montages,AM_
+Animation Sequence,AS_
+Blend Space,BS_
+NDisplay Configuration,NDC_
+Level Sequence,LS_
+Sequencer Edits,EDIT_
+Media Source,MS_
+Media Output,MO_
+Media Player,MP_
+Media Profile,MPR_
+Remote Control Preset,RCP_

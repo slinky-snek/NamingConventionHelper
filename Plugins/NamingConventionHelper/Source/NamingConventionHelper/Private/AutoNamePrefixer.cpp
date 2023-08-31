@@ -8,8 +8,8 @@ void UAutoNamePrefixer::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-	AssetRegistryModule.Get().OnAssetAdded().AddUObject(this, &UAutoNamePrefixer::OnAssetAdded);
-	FEditorDelegates::OnNewAssetCreated.AddUObject(this, &UAutoNamePrefixer::OnAssetCreated);
+	//AssetRegistryModule.Get().OnAssetAdded().AddUObject(this, &UAutoNamePrefixer::OnAssetAdded);
+	//FEditorDelegates::OnNewAssetCreated.AddUObject(this, &UAutoNamePrefixer::OnAssetCreated);
 }
 
 void UAutoNamePrefixer::Deinitialize()
@@ -17,17 +17,17 @@ void UAutoNamePrefixer::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UAutoNamePrefixer::OnAssetAdded(const FAssetData& AssetData)
+/*void UAutoNamePrefixer::OnAssetAdded(const FAssetData& AssetData)
 {
 	if(IsEditorFullyLoaded)
 		RenameAsset(AssetData);
-}
+}*/
 
-void UAutoNamePrefixer::OnAssetCreated(UFactory* Factory)
+/*void UAutoNamePrefixer::OnAssetCreated(UFactory* Factory)
 {
 	if(!IsEditorFullyLoaded)
 		IsEditorFullyLoaded = true;
-}
+}*/
 
 void UAutoNamePrefixer::RenameAsset(const FAssetData& AssetData)
 {
