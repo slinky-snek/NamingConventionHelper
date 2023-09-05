@@ -12,15 +12,19 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	/** IModuleInterface implementation */
-
-	//static void LoadNamingConventions();
-	static TMap<FString, FString> ReadCSVFile(const FString& FilePath);
+	
+	// Context menu extension functions
 	static TSharedRef<FExtender> ExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
 	static void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
-	static void RenameAssets(const TArray<FAssetData> SelectedAssets);
-	static FString GetAssetPrefix(const FTopLevelAssetPath ClassPath);
-	static bool DoesPrefixExistInName(const FAssetData& AssetData);
+
+	// Public rename/undo functions
+	static void ExecuteAssetRenaming(const TArray<FAssetData>& SelectedAssets);
+	static void UndoAssetRenaming(const TArray<FAssetData>& SelectedAssets);
 
 private:
 	static TMap<FString, FString>& GetNamingConventions();
+	static TMap<FString, FString> ReadCSVFile(const FString& FilePath);
+	static void RenameAsset(const FAssetData& SelectedAsset, const FString& NewAssetName);
+	static FString GetAssetPrefix(const FTopLevelAssetPath ClassPath);
+	static bool DoesPrefixExistInName(const FAssetData& AssetData);
 };

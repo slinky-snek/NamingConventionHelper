@@ -19,6 +19,79 @@ void FNamingConventionHelperModule::ShutdownModule()
 {
 }
 
+TSharedRef<FExtender> FNamingConventionHelperModule::ExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets)
+{
+	TSharedRef<FExtender> Extender = MakeShared<FExtender>();
+	Extender->AddMenuExtension(
+		"CommonAssetActions",
+		EExtensionHook::After,
+		nullptr,
+		FMenuExtensionDelegate::CreateStatic(&AssetExtenderFunc, SelectedAssets));
+	return Extender;
+}
+
+void FNamingConventionHelperModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets)
+{
+	MenuBuilder.BeginSection("Smart Rename Actions", LOCTEXT("SMART_RENAME_MENU_HEADER", "Smart Rename Actions"));
+	{
+		MenuBuilder.AddMenuEntry(LOCTEXT("EXECUTE_RENAME", "Execute Smart Rename"),LOCTEXT("RENAME_TOOLTIP", "Rename selected files with asset appropriate prefix."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Linter.Toolbar.Icon"),
+			FUIAction(FExecuteAction::CreateLambda([SelectedAssets]()
+			{
+				ExecuteAssetRenaming(SelectedAssets);
+			})),NAME_None, EUserInterfaceActionType::Button);
+
+		MenuBuilder.AddMenuEntry(LOCTEXT("EXECUTE_UNDO_RENAME", "Undo Asset Renaming"),LOCTEXT("UNDO_RENAME_TOOLTIP", "Undo smart renaming of selected files."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Linter.Toolbar.Icon"),
+			FUIAction(FExecuteAction::CreateLambda([SelectedAssets]()
+			{
+				UndoAssetRenaming(SelectedAssets);
+			})),NAME_None, EUserInterfaceActionType::Button);
+	}
+	MenuBuilder.EndSection();
+}
+
+void FNamingConventionHelperModule::ExecuteAssetRenaming(const TArray<FAssetData>& SelectedAssets)
+{
+	FScopedSlowTask RenameAssetsTask(SelectedAssets.Num(), LOCTEXT("RENAME_ASSETS", "Renaming Assets"));
+	RenameAssetsTask.MakeDialog(true);
+	for(const FAssetData& AssetData : SelectedAssets)
+	{
+		RenameAssetsTask.EnterProgressFrame();
+		if(AssetData.GetAsset() && AssetData.AssetClassPath.GetAssetName() != FName("BlueprintGeneratedClass"))
+		{
+			const FString AssetName = AssetData.AssetName.ToString();
+			const FString NewAssetName = GetAssetPrefix(AssetData.AssetClassPath).Append(AssetName);
+			if(!DoesPrefixExistInName(AssetData))
+			{
+				RenameAsset(AssetData, NewAssetName);
+			}
+		}
+		else
+			UE_LOG(LogEngine, Warning, TEXT("Renaming failed. Asset doesn't exist."));
+	}
+}
+
+void FNamingConventionHelperModule::UndoAssetRenaming(const TArray<FAssetData>& SelectedAssets)
+{
+	FScopedSlowTask RenameAssetsTask(SelectedAssets.Num(), LOCTEXT("UNDO_ASSET_RENAME", "Undo Asset Renaming"));
+	RenameAssetsTask.MakeDialog(true);
+	for(const FAssetData& AssetData : SelectedAssets)
+	{
+		RenameAssetsTask.EnterProgressFrame();
+		if(AssetData.GetAsset() && AssetData.AssetClassPath.GetAssetName() != FName("BlueprintGeneratedClass"))
+		{
+			if(DoesPrefixExistInName(AssetData))
+			{
+				const FString AssetName = AssetData.AssetName.ToString();
+				const FString Prefix = GetAssetPrefix(AssetData.AssetClassPath);
+				const FString NewAssetName = AssetName.RightChop(Prefix.Len());
+				RenameAsset(AssetData, NewAssetName);
+			}
+		}
+	}
+}
+
 TMap<FString, FString>& FNamingConventionHelperModule::GetNamingConventions()
 {
 	static TMap<FString, FString> NamingConventions;
@@ -61,56 +134,23 @@ TMap<FString, FString> FNamingConventionHelperModule::ReadCSVFile(const FString&
 	return NamingConventions;
 }
 
-TSharedRef<FExtender> FNamingConventionHelperModule::ExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets)
+void FNamingConventionHelperModule::RenameAsset(const FAssetData& SelectedAsset, const FString& NewAssetName)
 {
-	TSharedRef<FExtender> Extender = MakeShared<FExtender>();
-	Extender->AddMenuExtension(
-		"CommonAssetActions",
-		EExtensionHook::After,
-		nullptr,
-		FMenuExtensionDelegate::CreateStatic(&AssetExtenderFunc, SelectedAssets));
-	return Extender;
-}
-
-void FNamingConventionHelperModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets)
-{
-	MenuBuilder.BeginSection("Smart Rename Actions", LOCTEXT("SMART_RENAME_MENU_HEADER", "Smart Rename Actions"));
+	if(SelectedAsset.GetAsset() && SelectedAsset.AssetClassPath.GetAssetName() != FName("BlueprintGeneratedClass"))
 	{
-		MenuBuilder.AddMenuEntry(LOCTEXT("EXECUTE_RENAME", "Execute Smart Rename"),LOCTEXT("RENAME_TOOLTIP", "Rename selected files with asset appropriate prefix."),
-			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Linter.Toolbar.Icon"),
-			FUIAction(FExecuteAction::CreateLambda([SelectedAssets]()
-			{
-				RenameAssets(SelectedAssets);
-			})),NAME_None, EUserInterfaceActionType::Button);
-	}
-	MenuBuilder.EndSection();
-}
-
-void FNamingConventionHelperModule::RenameAssets(const TArray<FAssetData> SelectedAssets)
-{
-	FScopedSlowTask RenameAssetsTask(SelectedAssets.Num(), LOCTEXT("RENAMING_ASSETS", "Renaming Assets"));
-	RenameAssetsTask.MakeDialog(true);
-	for(const FAssetData& AssetData : SelectedAssets)
-	{
-		RenameAssetsTask.EnterProgressFrame();
-		if(AssetData.GetAsset() && AssetData.AssetClassPath.GetAssetName() != FName("BlueprintGeneratedClass"))
+		const FString PackageName = SelectedAsset.PackagePath.ToString();
+		const FString AssetName = SelectedAsset.AssetName.ToString();
+		const FString OldAssetPath = FString::Printf(TEXT("%s/%s"), *PackageName, *AssetName);
+		const FString NewAssetPath = FString::Printf(TEXT("%s/%s"), *PackageName, *NewAssetName);
+		if(UEditorAssetLibrary::RenameAsset(OldAssetPath, NewAssetPath))
 		{
-			const FString PackageName = AssetData.PackagePath.ToString();
-			const FString AssetName = AssetData.AssetName.ToString();
-			const FString OldAssetPath = FString::Printf(TEXT("%s/%s"), *PackageName, *AssetName);
-			const FString NewName = GetAssetPrefix(AssetData.AssetClassPath).Append(AssetName);
-			const FString NewAssetPath = FString::Printf(TEXT("%s/%s"), *PackageName, *NewName);
-			if(!DoesPrefixExistInName(AssetData))
-			{
-				if(UEditorAssetLibrary::RenameAsset(OldAssetPath, NewAssetPath))
-				{
-					UE_LOG(LogEngine, Warning, TEXT("Successfully renamed %s to %s"), *AssetName, *NewName);
-				}
-				else
-					UE_LOG(LogEngine, Warning, TEXT("Failed to rename %s"), *AssetName);
-			}
+			UE_LOG(LogEngine, Warning, TEXT("Successfully renamed %s to %s"), *AssetName, *NewAssetName);
 		}
+		else
+			UE_LOG(LogEngine, Warning, TEXT("Failed to rename %s"), *AssetName);
 	}
+	else
+		UE_LOG(LogEngine, Warning, TEXT("Renaming failed. Asset doesn't exist."));
 }
 
 FString FNamingConventionHelperModule::GetAssetPrefix(const FTopLevelAssetPath ClassPath)
@@ -131,7 +171,7 @@ bool FNamingConventionHelperModule::DoesPrefixExistInName(const FAssetData& Asse
 	AssetName.ParseIntoArray(AssetNameParts, *Delimiter);
 	if(AssetNameParts.Num() > 0)
 	{
-		FString CurrentPrefix = AssetNameParts[0].Append("_");
+		const FString CurrentPrefix = AssetNameParts[0].Append("_");
 		if(Prefix == CurrentPrefix)
 			return true;
 	}
