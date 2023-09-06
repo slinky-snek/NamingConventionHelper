@@ -47,13 +47,6 @@ void FNamingConventionHelperModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder,
 			{
 				UndoAssetRenaming(SelectedAssets);
 			})),NAME_None, EUserInterfaceActionType::Button);
-
-		MenuBuilder.AddMenuEntry(LOCTEXT("PRINT_ASSET_CLASS_NAMES", "Print Asset Class Names"),LOCTEXT("PRINT_ASSET_CLASS_NAMES", "Prints all selected asset class names to the viewport."),
-			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Linter.Toolbar.Icon"),
-			FUIAction(FExecuteAction::CreateLambda([SelectedAssets]()
-			{
-				PrintClassNames(SelectedAssets);
-			})),NAME_None, EUserInterfaceActionType::Button);
 	}
 	MenuBuilder.EndSection();
 }
@@ -97,17 +90,6 @@ void FNamingConventionHelperModule::UndoAssetRenaming(const TArray<FAssetData>& 
 			}
 		}
 	}
-}
-
-void FNamingConventionHelperModule::PrintClassNames(const TArray<FAssetData>& SelectedAssets)
-{
-	if(GEngine)
-		for(const FAssetData SelectedAsset : SelectedAssets)
-		{
-			const FTopLevelAssetPath ClassPath = SelectedAsset.AssetClassPath;
-			const FString ClassName = ClassPath.GetAssetName().ToString();
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, *ClassName);
-		}
 }
 
 TMap<FString, FString>& FNamingConventionHelperModule::GetNamingConventions()
