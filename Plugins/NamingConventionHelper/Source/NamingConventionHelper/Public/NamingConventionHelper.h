@@ -21,6 +21,9 @@ public:
 	static void ExecuteAssetRenaming(const TArray<FAssetData>& SelectedAssets);
 	static void UndoAssetRenaming(const TArray<FAssetData>& SelectedAssets);
 
+	// Helpers to get information about asset classes
+	static void PrintClassNames(const TArray<FAssetData>& SelectedAssets);
+
 private:
 	static TMap<FString, FString>& GetNamingConventions();
 	static TMap<FString, FString> ReadCSVFile(const FString& FilePath);

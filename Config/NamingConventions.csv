@@ -1,36 +1,36 @@
 HDRI,HDR_
 Material,M_
-Material Instance,MI_
-Physics Asset,PHYS_
-Physics Material,PM_
-Post Process Material,PPM_
-Skeletal Mesh,SK_
-Static Mesh,SM_
+MaterialInstanceConstant,MI_
+PhysicsAsset,PHYS_
+PhysicsMaterial,PM_
+PostProcessMaterial,PPM_
+SkeletalMesh,SK_
+StaticMesh,SM_
 Texture,T_
-OCIO Profile,OCIO_
-Actor Component,AC_
-Animation Blueprint,ABP_
-Blueprint Interface,BI_
+OCIOProfile,OCIO_
+ActorComponent,AC_
+AnimationBlueprint,ABP_
+BlueprintInterface,BI_
 Blueprint,BP_
-Curve Table,CT_
-Data Table,DT_
+CurveTable,CT_
+DataTable,DT_
 Enum,E_
 Structure,F_
-Widget Blueprint,WBP_
-Particle System (Cascade),PS_
-Niagara Emitter,FXE_
-Niagara System,FXS_
-Niagara Function,FXF_
+WidgetBlueprint,WBP_
+ParticleSystem(Cascade),PS_
+NiagaraEmitter,FXE_
+NiagaraSystem,FXS_
+NiagaraFunction,FXF_
 Rig,Rig_
 Skeleton,SKEL_
 Montages,AM_
-Animation Sequence,AS_
-Blend Space,BS_
-NDisplay Configuration,NDC_
-Level Sequence,LS_
-Sequencer Edits,EDIT_
-Media Source,MS_
-Media Output,MO_
-Media Player,MP_
-Media Profile,MPR_
-Remote Control Preset,RCP_
+AnimationSequence,AS_
+BlendSpace,BS_
+NDisplayConfiguration,NDC_
+LevelSequence,LS_
+SequencerEdits,EDIT_
+MediaSource,MS_
+MediaOutput,MO_
+MediaPlayer,MP_
+MediaProfile,MPR_
+RemoteControlPreset,RCP_

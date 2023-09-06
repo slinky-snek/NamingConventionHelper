@@ -47,6 +47,13 @@ void FNamingConventionHelperModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder,
 			{
 				UndoAssetRenaming(SelectedAssets);
 			})),NAME_None, EUserInterfaceActionType::Button);
+
+		MenuBuilder.AddMenuEntry(LOCTEXT("PRINT_ASSET_CLASS_NAMES", "Print Asset Class Names"),LOCTEXT("PRINT_ASSET_CLASS_NAMES", "Prints all selected asset class names to the viewport."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Linter.Toolbar.Icon"),
+			FUIAction(FExecuteAction::CreateLambda([SelectedAssets]()
+			{
+				PrintClassNames(SelectedAssets);
+			})),NAME_None, EUserInterfaceActionType::Button);
 	}
 	MenuBuilder.EndSection();
 }
@@ -90,6 +97,17 @@ void FNamingConventionHelperModule::UndoAssetRenaming(const TArray<FAssetData>& 
 			}
 		}
 	}
+}
+
+void FNamingConventionHelperModule::PrintClassNames(const TArray<FAssetData>& SelectedAssets)
+{
+	if(GEngine)
+		for(const FAssetData SelectedAsset : SelectedAssets)
+		{
+			const FTopLevelAssetPath ClassPath = SelectedAsset.AssetClassPath;
+			const FString ClassName = ClassPath.GetAssetName().ToString();
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, *ClassName);
+		}
 }
 
 TMap<FString, FString>& FNamingConventionHelperModule::GetNamingConventions()
@@ -158,23 +176,20 @@ FString FNamingConventionHelperModule::GetAssetPrefix(const FTopLevelAssetPath C
 	UE_LOG(LogTemp, Warning, TEXT("Class Path: %s"), *ClassPath.GetAssetName().ToString());
 	TMap<FString, FString>& NamingConventions = GetNamingConventions();
 	const FString ClassName = ClassPath.GetAssetName().ToString();
-	FString Prefix = "BP_";// = NamingConventions.Find(ClassName);
+	FString Prefix = "";
+	if(NamingConventions.Contains(ClassName))
+		Prefix = NamingConventions[ClassName];
 	return Prefix;
 }
 
 bool FNamingConventionHelperModule::DoesPrefixExistInName(const FAssetData& AssetData)
 {
-	TArray<FString> AssetNameParts;
 	const FString AssetName = AssetData.AssetName.ToString();
-	const FString Delimiter = "_";
 	const FString Prefix = GetAssetPrefix(AssetData.AssetClassPath);
-	AssetName.ParseIntoArray(AssetNameParts, *Delimiter);
-	if(AssetNameParts.Num() > 0)
-	{
-		const FString CurrentPrefix = AssetNameParts[0].Append("_");
-		if(Prefix == CurrentPrefix)
-			return true;
-	}
+	uint32 LeftChopIndex = AssetName.Len() - Prefix.Len();
+	const FString LeftChopPrefix = AssetName.LeftChop(LeftChopIndex);
+	if(Prefix.Equals(LeftChopPrefix))
+		return true;
 	return false;
 }
 
